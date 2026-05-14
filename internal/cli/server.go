@@ -34,6 +34,7 @@ func newServerCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&cfg.PublicAddr, "public", cfg.PublicAddr, "public HTTP listen address")
 	cmd.Flags().StringVar(&cfg.ControlAddr, "control", cfg.ControlAddr, "client control listen address")
+	cmd.Flags().StringVar(&cfg.BaseDomain, "base-domain", "", "base wildcard domain, for example tunnel.example.com")
 	cmd.Flags().StringVar(&cfg.Token, "token", "", "shared token required from clients")
 	cmd.Flags().Int64Var(&cfg.MaxBodyBytes, "max-body-bytes", 10<<20, "maximum request or response body size")
 

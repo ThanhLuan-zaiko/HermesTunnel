@@ -19,6 +19,7 @@ import (
 type Config struct {
 	PublicAddr   string
 	ControlAddr  string
+	BaseDomain   string
 	Token        string
 	MaxBodyBytes int64
 	Logf         func(format string, args ...any)
@@ -26,6 +27,7 @@ type Config struct {
 
 type Server struct {
 	cfg      Config
+	router   routing.Router
 	registry *registry
 }
 
@@ -42,8 +44,14 @@ func New(cfg Config) (*Server, error) {
 		cfg.MaxBodyBytes = protocol.DefaultMaxBodyBytes
 	}
 
+	cfg.BaseDomain = routing.NormalizeBaseDomain(cfg.BaseDomain)
+	if err := routing.ValidateBaseDomain(cfg.BaseDomain); err != nil {
+		return nil, err
+	}
+
 	return &Server{
 		cfg:      cfg,
+		router:   routing.NewRouter(cfg.BaseDomain),
 		registry: newRegistry(),
 	}, nil
 }
@@ -102,7 +110,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name, targetPath, ok := routing.SplitPublicRoute(r)
+	name, targetPath, ok := s.router.SplitPublicRoute(r)
 	if !ok {
 		http.Error(w, "Hermes Tunnel route not found. Use /{tunnel-name}/path or a tunnel subdomain.", http.StatusNotFound)
 		return

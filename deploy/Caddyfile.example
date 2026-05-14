@@ -1,0 +1,13 @@
+{
+	email admin@example.com
+}
+
+*.tunnel.example.com {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy 127.0.0.1:8080 {
+		header_up Host {host}
+	}
+}

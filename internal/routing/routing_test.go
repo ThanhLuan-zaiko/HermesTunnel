@@ -36,8 +36,64 @@ func TestRouteNameFromLocalhostSubdomain(t *testing.T) {
 	}
 }
 
+func TestRouterWithBaseDomainMatchesWildcardHost(t *testing.T) {
+	req, err := http.NewRequest(http.MethodGet, "https://app.tunnel.example.com/users", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	router := NewRouter("tunnel.example.com")
+	name, path, ok := router.SplitPublicRoute(req)
+	if !ok {
+		t.Fatal("expected route")
+	}
+	if name != "app" {
+		t.Fatalf("expected app, got %q", name)
+	}
+	if path != "/users" {
+		t.Fatalf("expected /users, got %q", path)
+	}
+}
+
+func TestRouterWithBaseDomainRejectsOtherHost(t *testing.T) {
+	req, err := http.NewRequest(http.MethodGet, "https://app.other-domain.com/users", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	router := NewRouter("tunnel.example.com")
+	if _, _, ok := router.SplitPublicRoute(req); ok {
+		t.Fatal("expected route to be rejected")
+	}
+}
+
+func TestRouterWithBaseDomainKeepsLocalPathRoute(t *testing.T) {
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8080/app/users", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	router := NewRouter("tunnel.example.com")
+	name, path, ok := router.SplitPublicRoute(req)
+	if !ok {
+		t.Fatal("expected local path route")
+	}
+	if name != "app" {
+		t.Fatalf("expected app, got %q", name)
+	}
+	if path != "/users" {
+		t.Fatalf("expected /users, got %q", path)
+	}
+}
+
 func TestValidateTunnelNameRejectsUppercase(t *testing.T) {
 	if err := ValidateTunnelName("MyApp"); err == nil {
 		t.Fatal("expected uppercase name to be rejected")
+	}
+}
+
+func TestValidateBaseDomainRejectsScheme(t *testing.T) {
+	if err := ValidateBaseDomain("https://tunnel.example.com"); err == nil {
+		t.Fatal("expected base domain with scheme to be rejected")
 	}
 }

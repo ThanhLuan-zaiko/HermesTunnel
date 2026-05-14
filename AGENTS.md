@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Hermes Tunnel is a Go CLI project. The executable entrypoint is in `cmd/hermes/main.go`. CLI commands live in `internal/cli`, built with Cobra. Runtime modules are split by responsibility: `internal/client` for the local tunnel client, `internal/gateway` for the public gateway and control server, `internal/protocol` for shared wire messages and HTTP helpers, and `internal/routing` for tunnel name routing. Tests sit beside the code they cover, for example `internal/routing/routing_test.go` and `internal/gateway/integration_test.go`. Development tooling is configured in `.air.toml`; generated binaries and temporary files should stay under `tmp/`, `bin/`, or `dist/` and are ignored by Git.
+Hermes Tunnel is a Go CLI project. The executable entrypoint is in `cmd/hermes/main.go`. CLI commands live in `internal/cli`, built with Cobra. Runtime modules are split by responsibility: `internal/client` for the local tunnel client, `internal/gateway` for the public gateway and control server, `internal/protocol` for shared wire messages and HTTP helpers, and `internal/routing` for tunnel name routing. Tests sit beside the code they cover, for example `internal/routing/routing_test.go` and `internal/gateway/integration_test.go`. Deployment docs and samples live in `docs/` and `deploy/`. Development tooling is configured in `.air.toml`; generated binaries and temporary files should stay under `tmp/`, `bin/`, or `dist/` and are ignored by Git.
 
 ## Build, Test, and Development Commands
 

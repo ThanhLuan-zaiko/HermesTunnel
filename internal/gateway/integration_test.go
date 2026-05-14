@@ -47,6 +47,7 @@ func TestServerClientRoundTrip(t *testing.T) {
 	server, err := New(Config{
 		PublicAddr:  publicAddr,
 		ControlAddr: controlAddr,
+		BaseDomain:  "tunnel.example.com",
 		Token:       "secret",
 		Logf:        t.Logf,
 	})
@@ -77,7 +78,7 @@ func TestServerClientRoundTrip(t *testing.T) {
 		clientErr <- tunnelClient.Run(ctx)
 	}()
 
-	resp := waitForPost(t, "http://"+publicAddr+"/app/hello?x=1", "ping")
+	resp := waitForPost(t, "http://"+publicAddr+"/hello?x=1", "app.tunnel.example.com", "ping")
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
@@ -131,13 +132,20 @@ func waitForHealth(t *testing.T, url string) {
 	t.Fatalf("timed out waiting for %s", url)
 }
 
-func waitForPost(t *testing.T, url string, body string) *http.Response {
+func waitForPost(t *testing.T, url string, host string, body string) *http.Response {
 	t.Helper()
 
 	deadline := time.Now().Add(3 * time.Second)
 	var lastErr error
 	for time.Now().Before(deadline) {
-		resp, err := http.Post(url, "text/plain", strings.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(body))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Host = host
+		req.Header.Set("Content-Type", "text/plain")
+
+		resp, err := http.DefaultClient.Do(req)
 		if err == nil && resp.StatusCode != http.StatusNotFound && resp.StatusCode != http.StatusBadGateway {
 			return resp
 		}

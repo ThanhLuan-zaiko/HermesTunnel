@@ -77,6 +77,7 @@ go run ./cmd/hermes version
 
 - `--public`: địa chỉ HTTP public, mặc định `:8080`.
 - `--control`: địa chỉ TCP cho client tunnel, mặc định `:8081`.
+- `--base-domain`: domain wildcard dùng để public tunnel, ví dụ `tunnel.example.com`.
 - `--token`: token dùng chung để client được phép kết nối.
 - `--max-body-bytes`: giới hạn dung lượng request/response.
 
@@ -138,6 +139,34 @@ air -- server --public :8080 --control :8081 --token dev-secret
 ```powershell
 go test ./...
 go build ./cmd/hermes
+```
+
+## Public ra Internet với VPS và HTTPS
+
+Mô hình production MVP dùng VPS làm gateway public, DNS wildcard trỏ về VPS và Caddy đứng trước Hermes để cấp HTTPS tự động.
+
+Tài liệu chi tiết nằm ở [docs/deploy-vps.md](docs/deploy-vps.md).
+
+Ví dụ server trên VPS:
+
+```bash
+hermes server \
+  --public 127.0.0.1:8080 \
+  --control :8081 \
+  --base-domain tunnel.example.com \
+  --token "$HERMES_TOKEN"
+```
+
+Ví dụ client trên máy cá nhân:
+
+```powershell
+hermes connect --name app --local http://localhost:3000 --server <VPS_IP>:8081 --token <strong-token>
+```
+
+Sau khi DNS và Caddy sẵn sàng, truy cập:
+
+```text
+https://app.tunnel.example.com
 ```
 
 ## Hướng phát triển tiếp theo
